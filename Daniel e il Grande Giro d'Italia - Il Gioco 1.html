@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daniel e il Grande Giro d'Italia — Il Gioco</title>
+<style>
+:root{
+  --crema:#fdf8ef; --inchiostro:#23262e; --rosso:#c8102e; --rosso2:#e8452f;
+  --oro:#d9a441; --navy:#12203f; --blu:#0d4a70; --verde:#2f7d4f;
+  --grigio:#9aa3b5; --carta:#f4efe3;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--navy);
+  font-family:ui-monospace,"SFMono-Regular","Courier New",monospace;
+  color:var(--inchiostro);
+  display:flex;align-items:center;justify-content:center;padding:8px;
+}
+#app{
+  width:100%;max-width:820px;background:var(--crema);
+  border:4px solid var(--navy);
+  box-shadow:0 0 0 4px var(--oro), 8px 8px 0 rgba(0,0,0,.35);
+  position:relative;overflow:hidden;
+}
+.hud{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  background:var(--navy);color:#fff;padding:8px 10px;
+  font-size:11px;letter-spacing:1px;text-transform:uppercase;
+}
+.hud .box{background:rgba(255,255,255,.1);padding:4px 8px;border:2px solid rgba(255,255,255,.25)}
+.hud .val{color:var(--oro);font-weight:bold}
+.hud .sp{flex:1}
+.mini{
+  background:none;border:2px solid rgba(255,255,255,.35);color:#fff;
+  font-family:inherit;font-size:10px;letter-spacing:1px;padding:4px 8px;
+  cursor:pointer;text-transform:uppercase;
+}
+.mini:hover{background:rgba(255,255,255,.18)}
+.scr{padding:16px}
+h1,h2,h3{letter-spacing:2px;text-transform:uppercase;line-height:1.25}
+h1{font-size:26px;color:var(--rosso);text-shadow:3px 3px 0 var(--oro)}
+h2{font-size:19px;color:var(--navy)}
+.centro{text-align:center}
+.pill{display:inline-block;background:var(--rosso);color:#fff;padding:3px 10px;font-size:11px;letter-spacing:2px;text-transform:uppercase}
+.pill.mare{background:var(--blu)}
+button.big{
+  font-family:inherit;font-size:14px;letter-spacing:2px;text-transform:uppercase;
+  background:var(--rosso);color:#fff;border:0;padding:12px 22px;cursor:pointer;
+  box-shadow:4px 4px 0 var(--navy);transition:transform .06s, box-shadow .06s;
+}
+button.big:hover{background:#e01a3a}
+button.big:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--navy)}
+button.big.blu{background:var(--blu)}
+button.big.verde{background:var(--verde)}
+button.big.ghost{background:transparent;color:var(--navy);box-shadow:none;border:3px solid var(--navy)}
+.mapwrap{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.mapbox{flex:0 0 auto;background:#d9eaf4;border:3px solid var(--navy);padding:4px}
+.listbox{flex:1;min-width:250px}
+.tappa-riga{
+  display:flex;align-items:center;gap:8px;width:100%;
+  background:var(--carta);border:2px solid #ded5c2;
+  padding:7px 9px;margin-bottom:5px;cursor:pointer;
+  font-family:inherit;font-size:12px;text-align:left;color:var(--inchiostro);
+}
+.tappa-riga:hover:not(:disabled){border-color:var(--rosso);background:#fff}
+.tappa-riga:disabled{opacity:.42;cursor:not-allowed}
+.tappa-riga .num{background:var(--navy);color:#fff;width:22px;height:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold}
+.tappa-riga.fatta .num{background:var(--verde)}
+.tappa-riga.ora .num{background:var(--rosso);animation:batt 1s infinite}
+.tappa-riga .nm{flex:1;letter-spacing:1px;text-transform:uppercase;font-size:11px}
+@keyframes batt{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+.scheda{background:var(--carta);border:3px solid var(--navy);margin:10px 0}
+.scheda .top{background:var(--navy);color:#fff;padding:8px 12px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.scheda .top b{letter-spacing:2px;font-size:13px}
+.scheda .top span{color:var(--oro);font-size:10px;letter-spacing:1px}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.specs div{padding:5px 10px;font-size:11px;border-bottom:1px solid #e3dac6}
+.specs div:nth-child(4n+1),.specs div:nth-child(4n+2){background:#efe9da}
+.specs b{color:#5a6172;display:block;font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.riga-costo{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.costo{flex:1;min-width:120px;background:#fff;border:3px solid var(--oro);padding:8px;text-align:center}
+.costo b{display:block;font-size:9px;letter-spacing:1px;color:#8a8272;text-transform:uppercase}
+.costo span{font-size:18px;font-weight:bold;color:var(--rosso)}
+.storia{font-size:19px;line-height:1.75;background:#fff;border:3px solid var(--oro);padding:16px;margin:10px 0;min-height:180px;white-space:pre-wrap}
+.punti{display:flex;gap:6px;justify-content:center;margin:8px 0}
+.punto{width:11px;height:11px;background:#ded5c2;border:2px solid var(--navy)}
+.punto.on{background:var(--rosso)}
+.sapevi{background:#fbf3e1;border:3px solid var(--oro);border-left:10px solid var(--rosso);padding:14px;font-size:16px;line-height:1.65;margin:10px 0}
+.domanda{font-size:18px;line-height:1.5;background:#fff;border:3px solid var(--navy);padding:14px;margin:8px 0}
+.opz{
+  display:flex;align-items:center;gap:10px;width:100%;
+  font-family:inherit;font-size:15px;line-height:1.4;text-align:left;
+  background:var(--carta);border:3px solid #ded5c2;padding:11px;margin-bottom:7px;
+  cursor:pointer;color:var(--inchiostro);
+}
+.opz:hover:not(:disabled){border-color:var(--rosso);background:#fff}
+.opz .let{background:var(--navy);color:#fff;width:26px;height:26px;flex:0 0 26px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px}
+.opz.giusta{border-color:var(--verde);background:#e8f6ec}
+.opz.giusta .let{background:var(--verde)}
+.opz.sbagliata{border-color:var(--rosso);background:#fdeaec}
+.opz.sbagliata .let{background:var(--rosso)}
+.opz:disabled{cursor:default}
+.feedback{font-size:16px;line-height:1.6;padding:12px;margin:8px 0;border:3px solid}
+.feedback.ok{background:#e8f6ec;border-color:var(--verde)}
+.feedback.no{background:#fff6e5;border-color:var(--oro)}
+.viaggio{position:relative;height:250px;overflow:hidden;border:3px solid var(--navy);background:#bfe3f0}
+.viaggio.notte{background:#0d1a33}
+.strato{position:absolute;left:0;bottom:0;width:200%;height:100%}
+.moto-box{position:absolute;left:50%;bottom:40px;transform:translateX(-50%);animation:sobbalzo .35s infinite}
+.moto-box.barca{bottom:56px;animation:onda 2.2s ease-in-out infinite}
+@keyframes sobbalzo{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-3px)}}
+@keyframes onda{0%,100%{transform:translateX(-50%) translateY(0) rotate(-1.5deg)}50%{transform:translateX(-50%) translateY(-7px) rotate(1.5deg)}}
+@keyframes scorri{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.barra{height:16px;background:var(--carta);border:3px solid var(--navy);margin-top:10px;overflow:hidden}
+.barra i{display:block;height:100%;background:var(--rosso);width:0}
+.trofeo{font-size:58px;line-height:1;animation:salta 1s ease-in-out infinite}
+@keyframes salta{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-12px) rotate(4deg)}}
+.tab{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+.tab td{padding:7px 9px;border-bottom:2px solid #e3dac6}
+.tab td:last-child{text-align:right;font-weight:bold;color:var(--rosso)}
+.tab tr:last-child td{border-bottom:0;border-top:3px solid var(--navy);font-size:16px;padding-top:10px}
+.riga-btn{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.sotto{font-size:11px;color:#8a8272;letter-spacing:1px;text-align:center;margin-top:8px}
+.leggi{background:var(--oro);border:0;color:var(--navy);font-family:inherit;font-size:12px;letter-spacing:1px;padding:8px 14px;cursor:pointer;text-transform:uppercase;box-shadow:3px 3px 0 var(--navy)}
+.leggi:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--navy)}
+.garage{display:flex;justify-content:center;padding:6px;background:#efe9da;border-bottom:2px solid #e3dac6}
+@media(max-width:560px){
+  h1{font-size:19px}h2{font-size:15px}
+  .storia{font-size:17px}.opz{font-size:14px}.domanda{font-size:16px}
+  .specs{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+
+/* ============================================================
+   SAGOME MOTO — vista laterale, rivolte a DESTRA (senso di marcia)
+   ============================================================ */
+function ruota(cx,cy,r){
+  let sp="";
+  for(let i=0;i<5;i++){
+    sp+=`<rect x="${(cx-1.5).toFixed(1)}" y="${(cy-r*0.55).toFixed(1)}" width="3" height="${(r*1.1).toFixed(1)}" fill="#b6bcc5" transform="rotate(${i*36} ${cx} ${cy})"/>`;
+  }
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#15171c"/>
+  <circle cx="${cx}" cy="${cy}" r="${(r*0.70).toFixed(1)}" fill="#2f343b"/>
+  <circle cx="${cx}" cy="${cy}" r="${(r*0.62).toFixed(1)}" fill="#cbd0d8"/>
+  ${sp}
+  <circle cx="${cx}" cy="${cy}" r="${(r*0.19).toFixed(1)}" fill="#7d838d" stroke="#3a3f47" stroke-width="1.3"/>`;
+}
+
+function pilota(ax,ay,posa,tuta){
+  const NERO="#20242e", JEANS="#31507f", PELLE="#f2cda6";
+  let sp,te,ma,gi,pi;
+  if(posa===1){
+    sp=[ax+20,ay-20]; te=[ax+31,ay-27]; ma=[ax+46,ay-10];
+    gi=[ax-3,ay+16]; pi=[ax+12,ay+21];
+  }else if(posa===2){
+    sp=[ax+11,ay-27]; te=[ax+17,ay-40]; ma=[ax+44,ay-16];
+    gi=[ax+22,ay+11]; pi=[ax+40,ay+9];
+  }else{
+    sp=[ax+9,ay-28]; te=[ax+15,ay-42]; ma=[ax+40,ay-19];
+    gi=[ax+7,ay+17]; pi=[ax+21,ay+21];
+  }
+  return `
+  <path d="M${ax} ${ay} L${gi[0]} ${gi[1]} L${pi[0]} ${pi[1]}" stroke="${JEANS}" stroke-width="10"
+        fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M${ax} ${ay} L${sp[0]} ${sp[1]}" stroke="${NERO}" stroke-width="15" stroke-linecap="round"/>
+  <path d="M${ax+2} ${ay-3} L${sp[0]} ${sp[1]}" stroke="${tuta}" stroke-width="7" stroke-linecap="round"/>
+  <path d="M${sp[0]} ${sp[1]} L${ma[0]} ${ma[1]}" stroke="${NERO}" stroke-width="7.5" stroke-linecap="round"/>
+  <circle cx="${ma[0]}" cy="${ma[1]}" r="4" fill="${PELLE}" stroke="${NERO}" stroke-width="1.5"/>
+  <circle cx="${te[0]}" cy="${te[1]}" r="12" fill="${tuta}" stroke="#15171c" stroke-width="2.2"/>
+  <path d="M${te[0]-12} ${te[1]+1} a12 12 0 0 1 24 0 z" fill="#15171c" opacity=".22"/>
+  <path d="M${te[0]+2} ${te[1]-6} q10 3 10 8 q-5 3 -11 2 z" fill="#8fd3ef" stroke="#15171c" stroke-width="1.6"/>
+  <path d="M${te[0]-10} ${te[1]+5} q11 5 21 0" stroke="#15171c" stroke-width="2" fill="none"/>`;
+}
+
+function svgMoto(k){
+  const R="#d8232f", RS="#9c1220", N="#20242e", GR="#5f6570", AL="#cbd0d8";
+  const ombra=`<ellipse cx="100" cy="101" rx="76" ry="5" fill="rgba(0,0,0,.13)"/>`;
+
+  if(k==="traghetto"||k==="nave"){
+    const notte=(k==="nave");
+    const scafo=notte?"#1b3a5c":"#2a7fb8";
+    const casa=notte?"#eaeff6":"#f3f6f9";
+    const luce=notte?"#ffd97a":"#a7dcf2";
+    let ob="",fi="";
+    for(let i=0;i<7;i++) ob+=`<circle cx="${54+i*13}" cy="54" r="3.4" fill="${luce}" stroke="${N}" stroke-width="1.2"/>`;
+    for(let i=0;i<4;i++) fi+=`<rect x="${66+i*14}" y="30" width="9" height="9" rx="1" fill="${luce}" stroke="${N}" stroke-width="1.2"/>`;
+    return `<svg width="182" height="106" viewBox="0 0 200 106">
+      ${ombra}
+      <path d="M30 64 L166 64 L150 88 L46 88 Z" fill="${scafo}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+      <rect x="48" y="44" width="104" height="20" fill="${casa}" stroke="${N}" stroke-width="2.6"/>
+      ${ob}
+      <rect x="62" y="22" width="64" height="22" fill="${casa}" stroke="${N}" stroke-width="2.6"/>
+      ${fi}
+      <rect x="130" y="14" width="13" height="30" fill="${scafo}" stroke="${N}" stroke-width="2.6"/>
+      <rect x="130" y="14" width="13" height="7" fill="${RS}"/>
+      <path d="M110 22 L110 8" stroke="${N}" stroke-width="2"/>
+      <circle cx="110" cy="7" r="3.4" fill="${notte?"#ffd97a":"#e8452f"}"/>
+      <path d="M150 88 q-12 8 -28 8 L62 96 q-12 0 -16 -8 Z" fill="${notte?"#0d2440":"#1d5f8f"}" stroke="${N}" stroke-width="2"/>
+      <path d="M12 96 q18 6 36 0 t36 0 t36 0 t36 0" stroke="#fff" stroke-width="3.5" fill="none" opacity=".7" stroke-linecap="round"/>
+    </svg>`;
+  }
+
+  const B={
+  multistrada:`
+    ${ombra}
+    ${ruota(48,80,23)}${ruota(152,80,23)}
+    <path d="M152 80 L138 40" stroke="${AL}" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M146 80 L133 42" stroke="${AL}" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M48 80 L86 72" stroke="${GR}" stroke-width="9" stroke-linecap="round"/>
+    <path d="M88 60 L118 58 L122 76 L92 78 Z" fill="${N}"/>
+    <path d="M96 64 L118 62" stroke="${GR}" stroke-width="3"/>
+    <path d="M34 48 L74 46 L96 52 L124 50 L132 58 L100 64 L68 62 L38 60 Z"
+          fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <rect x="30" y="52" width="34" height="26" rx="4" fill="${RS}" stroke="${N}" stroke-width="2.6"/>
+    <path d="M36 60 L58 60" stroke="${AL}" stroke-width="2.6"/>
+    <path d="M124 50 L146 44 L154 54 L132 58 Z" fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M150 46 L172 40 L168 56 L152 58 Z" fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M152 40 L174 32 L176 20 L150 26 Z" fill="#cfe6f5" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <rect x="156" y="46" width="13" height="10" rx="2" fill="#ffe9a8" stroke="${N}" stroke-width="2"/>
+    <path d="M160 64 L178 68 L172 76 L156 72 Z" fill="${R}" stroke="${N}" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M138 40 L120 36" stroke="${N}" stroke-width="5" stroke-linecap="round"/>
+    <path d="M62 76 L92 80" stroke="${AL}" stroke-width="6" stroke-linecap="round"/>
+    ${pilota(96,54,0,R)}`,
+
+  monster:`
+    ${ombra}
+    ${ruota(48,80,22)}${ruota(152,80,22)}
+    <path d="M152 80 L138 46" stroke="${AL}" stroke-width="7" stroke-linecap="round"/>
+    <path d="M146 80 L133 48" stroke="${AL}" stroke-width="7" stroke-linecap="round"/>
+    <path d="M48 80 L84 72" stroke="${GR}" stroke-width="9" stroke-linecap="round"/>
+    <path d="M86 58 L118 56 L122 76 L90 78 Z" fill="${N}"/>
+    <path d="M94 62 L118 60" stroke="${GR}" stroke-width="3"/>
+    <path d="M98 58 L118 48 L128 58" fill="none" stroke="${R}" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M86 58 L100 50 L110 58" fill="none" stroke="${R}" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M40 48 L72 46 L96 52 L126 48 L134 56 L100 62 L70 60 L44 58 Z"
+          fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M36 42 L64 44 L60 54 L38 54 Z" fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M126 48 L148 46 L152 56 L134 56 Z" fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <circle cx="156" cy="48" r="13" fill="#ffe9a8" stroke="${N}" stroke-width="2.6"/>
+    <circle cx="156" cy="48" r="6" fill="#fff8dc"/>
+    <path d="M138 42 L118 38" stroke="${N}" stroke-width="5" stroke-linecap="round"/>
+    <path d="M58 74 L90 78" stroke="${AL}" stroke-width="7" stroke-linecap="round"/>
+    ${pilota(94,52,0,R)}`,
+
+  panigale:`
+    ${ombra}
+    ${ruota(48,82,22)}${ruota(152,82,22)}
+    <path d="M152 82 L136 50" stroke="${AL}" stroke-width="6.5" stroke-linecap="round"/>
+    <path d="M48 82 L88 74" stroke="${GR}" stroke-width="10" stroke-linecap="round"/>
+    <path d="M90 62 L118 60 L122 78 L94 80 Z" fill="${N}"/>
+    <path d="M56 54 L88 50 L112 54 L140 54 L162 60 L168 70 L146 74 L112 72 L84 68 L58 64 Z"
+          fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M162 58 L176 60 L174 72 L164 70 Z" fill="${RS}" stroke="${N}" stroke-width="2.2"/>
+    <path d="M168 50 L182 52 L178 62 L166 58 Z" fill="${N}" stroke="${N}" stroke-width="1.6"/>
+    <rect x="150" y="48" width="15" height="10" rx="2" fill="#ffe9a8" stroke="${N}" stroke-width="2"
+          transform="rotate(10 157 53)"/>
+    <path d="M34 38 L66 40 L74 52 L44 54 Z" fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M28 36 L42 36 L44 48 Z" fill="${RS}" stroke="${N}" stroke-width="2"/>
+    <path d="M136 50 L120 48" stroke="${N}" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M60 78 L90 82 L96 76" stroke="${AL}" stroke-width="6" fill="none" stroke-linecap="round"/>
+    ${pilota(92,54,1,R)}`,
+
+  diavel:`
+    ${ombra}
+    ${ruota(44,78,26)}${ruota(158,80,21)}
+    <path d="M158 80 L142 48" stroke="${AL}" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M152 80 L137 50" stroke="${AL}" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M44 78 L86 72" stroke="${GR}" stroke-width="10" stroke-linecap="round"/>
+    <path d="M88 58 L120 56 L124 78 L92 80 Z" fill="#2b2f37"/>
+    <path d="M96 62 L120 60" stroke="${GR}" stroke-width="3"/>
+    <path d="M34 48 L70 46 L98 54 L126 50 L142 58 L104 64 L72 62 L38 60 Z"
+          fill="#262a31" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M28 44 L58 42 L56 54 L32 54 Z" fill="#262a31" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <rect x="24" y="58" width="28" height="7" rx="3.5" fill="${GR}" stroke="${N}" stroke-width="2"/>
+    <rect x="24" y="68" width="28" height="7" rx="3.5" fill="${GR}" stroke="${N}" stroke-width="2"/>
+    <circle cx="150" cy="52" r="11" fill="#ffe9a8" stroke="${N}" stroke-width="2.6"/>
+    <path d="M142 46 L120 42" stroke="${N}" stroke-width="5" stroke-linecap="round"/>
+    <path d="M120 84 L148 88" stroke="${AL}" stroke-width="5" stroke-linecap="round"/>
+    ${pilota(92,56,2,"#262a31")}`,
+
+  hyper:`
+    ${ombra}
+    ${ruota(48,82,21)}${ruota(152,82,21)}
+    <path d="M152 82 L136 32" stroke="${AL}" stroke-width="7" stroke-linecap="round"/>
+    <path d="M146 82 L131 34" stroke="${AL}" stroke-width="7" stroke-linecap="round"/>
+    <path d="M48 82 L86 74" stroke="${GR}" stroke-width="8" stroke-linecap="round"/>
+    <path d="M88 60 L116 58 L120 76 L92 78 Z" fill="${N}"/>
+    <path d="M140 54 L166 44 L172 54 L146 62 Z" fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M52 48 L80 44 L104 52 L128 48 L136 56 L106 62 L78 60 L56 58 Z"
+          fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M40 42 L70 40 L66 52 L44 52 Z" fill="${R}" stroke="${N}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M48 56 L76 52 L80 62 L52 66 Z" fill="${GR}" stroke="${N}" stroke-width="2.4" stroke-linejoin="round"/>
+    <rect x="148" y="50" width="12" height="9" rx="2" fill="#ffe9a8" stroke="${N}" stroke-width="2"/>
+    ${pilota(92,50,0,R)}
+    <path d="M137 33 L140 26 L131 28" stroke="${N}" stroke-width="5" fill="none"
+          stroke-linecap="round" stroke-linejoin="round"/>`
+  };
+  return `<svg width="182" height="106" viewBox="0 0 200 106">${B[k]||B.monster}</svg>`;
+}
+
+/* ============================================================
+   LE CINQUE DUCATI  (schede tecniche dal libro)
+   ============================================================ */
+const MOTO = {
+  multistrada:{nome:"DUCATI MULTISTRADA V4",corto:"Multistrada V4",
+    ruolo:"Montagna, sterrato e lunghi viaggi",
+    frase:"Non ha paura di niente: sassi, sabbia, tornanti, pioggia.",
+    spec:[["Motore","V4 Granturismo"],["Cilindrata","1.158 cc"],["Potenza","170 CV"],
+          ["Coppia","124 Nm"],["Peso","229 kg"],["Sella","840-860 mm"]]},
+  monster:{nome:"DUCATI MONSTER",corto:"Monster",
+    ruolo:"Città e centri storici",
+    frase:"Piccola, tutta motore e tubi in vista. Si infila ovunque!",
+    spec:[["Motore","V2 bicilindrico"],["Cilindrata","890 cc"],["Potenza","111 CV"],
+          ["Coppia","91,1 Nm"],["Peso","175 kg"],["Sella","815 mm"]]},
+  panigale:{nome:"DUCATI PANIGALE V4",corto:"Panigale V4",
+    ruolo:"Autostrada e curve veloci",
+    frase:"Non cammina: vola rasoterra!",
+    spec:[["Motore","Desmosedici Stradale"],["Cilindrata","1.103 cc"],["Potenza","216 CV"],
+          ["Coppia","120,9 Nm"],["Peso","191 kg"],["Sella","850 mm"]]},
+  diavel:{nome:"DUCATI DIAVEL V4",corto:"Diavel V4",
+    ruolo:"Strade di mare e passeggiate",
+    frase:"Non corre: passeggia. Con un rombo da tuono gentile.",
+    spec:[["Motore","V4 Granturismo"],["Cilindrata","1.158 cc"],["Potenza","168 CV"],
+          ["Coppia","126 Nm"],["Peso","236 kg"],["Sella","790 mm"]]},
+  hyper:{nome:"DUCATI HYPERMOTARD 698",corto:"Hypermotard",
+    ruolo:"Colline, vicoli e curve strette",
+    frase:"Le piace tenere la ruota davanti per aria!",
+    spec:[["Motore","Superquadro Mono"],["Cilindrata","659 cc"],["Potenza","77,5 CV"],
+          ["Coppia","63 Nm"],["Peso","151 kg"],["Sella","904 mm"]]},
+  traghetto:{nome:"IL TRAGHETTO",corto:"Traghetto",
+    ruolo:"Per attraversare lo Stretto",
+    frase:"Una nave con la bocca, che mangia le macchine!",
+    spec:[["Viaggio","Circa 20 minuti"],["Trasporta","Auto e treni"],["Ponte","All'aperto"],
+          ["Amici","Delfini"],["Seguito da","Gabbiani"],["Bocca","Si apre davanti"]]},
+  nave:{nome:"LA NAVE DI NOTTE",corto:"Nave di notte",
+    ruolo:"Per arrivare in Sardegna",
+    frase:"Alta come un palazzo di otto piani. Si dorme dentro!",
+    spec:[["Viaggio","Tutta la notte"],["Altezza","Come 8 piani"],["Lunghezza","3 campi da calcio"],
+          ["Cabina","Due letti"],["Finestra","Un oblò"],["Sopra","Tutte le stelle"]]}
+};
+
+/* ============================================================
+   LE VENTI TAPPE
+   ============================================================ */
+const TAPPE = [
+{n:1,nome:"TORINO",reg:"Piemonte",moto:"multistrada",km:0,ter:"Partenza fra le montagne",scena:"mole",lon:7.69,lat:45.07,
+ storia:[
+"Oggi Daniel compie sei anni.\n\nSi sveglia prestissimo. In cucina trova un biglietto di Papà:\n\n«Il tuo regalo è in garage!»\n\nDaniel corre giù per le scale.",
+"In garage c'è un pacco grande, grande, GRANDE.\n\nDaniel tira il fiocco rosso. Il telo scivola giù.\n\nSotto c'è una moto rossa: una Ducati Multistrada!\n\nHa due valigie: una per i calzini e una per le merendine. Daniel le riempie tutte e due di merendine.",
+"A Torino c'è una torre altissima e sottile.\n\n«Sembra una matita!» dice Daniel.\n\n«È una matita» dice Papà. «Scrive il tuo nome sulle nuvole.»\n\nBRUUUM! Le Alpi rispondono con l'eco.\n\nUna marmotta si affaccia: «Bella moto. Ma io in discesa sono più veloce!»"],
+ sapevi:"A Torino hanno inventato il cioccolato che si scioglie in bocca. Daniel ne ha assaggiati sette pezzi. Papà dice otto!",
+ quiz:[
+ {d:"Che regalo trova Daniel in garage?",o:["Una moto Ducati Multistrada rossa","Una bicicletta rossa","Un monopattino nuovo","Un casco con le stelle"],c:0},
+ {d:"Come si chiama la torre altissima di Torino?",o:["La Lanterna","La Mole Antonelliana","La Madonnina","La torre storta"],c:1},
+ {d:"Cosa mette Daniel dentro tutte e due le valigie?",o:["I calzini","Le scarpe","Le merendine","I giocattoli"],c:2},
+ {d:"A cosa dice Papà che assomiglia l'Italia?",o:["A una pizza tonda","A una scarpa","A un cioccolatino","A uno spaghetto lungo"],c:3},
+ {d:"Quale animale dice che in discesa è più veloce?",o:["Una marmotta","Un gatto","Un piccione","Un delfino"],c:0}]},
+
+{n:2,nome:"GENOVA",reg:"Liguria",moto:"multistrada",km:170,ter:"Discesa verso il mare",scena:"porto",lon:8.93,lat:44.41,
+ storia:[
+"La strada scende, scende, scende.\n\nDentro le gallerie. Sopra i ponti altissimi.\n\nPoi, dietro l'ultima curva, tutto si apre.\n\nE Daniel vede il MARE per la prima volta!\n\n«PAPÀ! IL MARE!» urla dentro il casco.",
+"Genova è una città in piedi.\n\nLe case sono strette e altissime. Si arrampicano sulle colline come se volessero vedere meglio il mare.\n\nIn basso c'è il porto, con navi grandi come palazzi.\n\nE le gru: bestioni di ferro che prendono i container colorati e li spostano in aria.",
+"Poi Papà lo porta nei caruggi.\n\nSono vicoli così stretti che Daniel tocca tutti e due i muri con le braccia aperte!\n\nMangiano la focaccia, bassa e dorata.\n\nPoi vanno a vedere la Lanterna, il faro che resta sveglio tutta la notte.\n\n«Allora è come te» dice Daniel. «Tu lasci la luce accesa in garage.»"],
+ sapevi:"La Lanterna di Genova è uno dei fari più alti del mondo. E la focaccia qui si mangia anche a colazione, inzuppata nel cappuccino!",
+ quiz:[
+ {d:"Cosa vede Daniel per la prima volta a Genova?",o:["La neve","Il mare","Un vulcano","Un castello"],c:1},
+ {d:"Cosa spostano le grandi gru del porto?",o:["Le barche a vela","I pesci","I container colorati","Le biciclette"],c:2},
+ {d:"Come si chiamano i vicoli stretti di Genova?",o:["I caruggi","I portici","I canali","Le mura"],c:0},
+ {d:"Quale salsa verde è nata a Genova?",o:["Il ragù","La maionese","Il pomodoro","Il pesto"],c:3},
+ {d:"Come si chiama il faro simbolo della città?",o:["La Madonnina","La Lanterna","La Mole","L'Arena"],c:1}]},
+
+{n:3,nome:"MILANO",reg:"Lombardia",moto:"monster",km:145,ter:"Città di fretta",scena:"duomo",lon:9.19,lat:45.46,
+ storia:[
+"A Milano Daniel cambia moto.\n\n«In città serve una moto piccola e furba» dice Papà.\n\nArriva la Ducati Monster. È rossa e bassa, tutta motore e tubi in vista.\n\n«Perché si chiama Monster? Non fa paura!»\n\n«Fa paura solo ai semafori» dice Papà.",
+"In mezzo alla città c'è una piazza enorme.\n\nE dentro la piazza c'è il Duomo.\n\nÈ una cattedrale bianca, gigantesca, tutta ricamata come un merletto.\n\n«Sembra una torta di panna!» dice Daniel.\n\n«Ci hanno messo quasi seicento anni a finirla» dice Papà.",
+"La piazza è piena di piccioni. Tutti i piccioni del mondo!\n\nDaniel accende il motore. BRUUM!\n\nI piccioni volano via tutti insieme.\n\n«Scusate!» grida Daniel.\n\n«Figurati!» risponde un piccione. «Ci serviva movimento. Mangiamo troppo panettone!»"],
+ sapevi:"In cima al Duomo c'è una statua d'oro: la Madonnina. Per tanto tempo nessun palazzo di Milano poteva essere più alto di lei!",
+ quiz:[
+ {d:"Quale Ducati usa Daniel a Milano?",o:["La Panigale","La Diavel","La Monster","La Multistrada"],c:2},
+ {d:"Come si chiama la grande cattedrale bianca?",o:["Il Duomo","L'Arena","Il Colosseo","La Lanterna"],c:0},
+ {d:"Quanti anni ci hanno messo a costruirla?",o:["Sei mesi","Dieci anni","Cento anni","Quasi seicento anni"],c:3},
+ {d:"Come si chiama la statua dorata in cima?",o:["La Marmotta","La Madonnina","La Giulietta","La Lanterna"],c:1},
+ {d:"Qual è il dolce di cui parla il piccione?",o:["La focaccia","Il gelato","Il panettone","Il cioccolato"],c:2}]},
+
+{n:4,nome:"BERGAMO",reg:"Lombardia",moto:"monster",km:60,ter:"Salita alla Città Alta",scena:"mura",lon:9.67,lat:45.70,
+ storia:[
+"Bergamo è una città che sta in due posti insieme!\n\nC'è una Bergamo in basso, nella pianura.\n\nE una Bergamo in alto, sopra una collina verde.\n\nSi chiamano Città Bassa e Città Alta.",
+"«Come si fa a salire?» chiede Daniel.\n\n«In moto, oppure con la funicolare» dice Papà.\n\n«Cos'è la funicolare?»\n\n«Un trenino che sale dritto per la collina, tirato da un cavo. Uno va su e uno viene giù.»\n\nDaniel li vuole provare tutti e due. E li provano!",
+"In alto ci sono le mura. Altissime, larghe, vecchie di quattrocento anni.\n\n«A cosa servivano?»\n\n«A difendere la città. Erano così robuste che nessuno ci ha mai nemmeno provato ad attaccarle!»\n\nDaniel pensa che sia il muro migliore del mondo: uno che vince senza litigare."],
+ sapevi:"Le mura di Bergamo sono lunghe più di sei chilometri. Oggi ci si cammina sopra come su una terrazza lunghissima!",
+ quiz:[
+ {d:"Perché Bergamo è una città in due parti?",o:["È divisa da un fiume","C'è la Città Bassa e la Città Alta","Perché ha due nomi","Perché è metà in mare"],c:1},
+ {d:"Come si chiama il trenino che sale la collina?",o:["La funicolare","Il vaporetto","La gondola","Il traghetto"],c:0},
+ {d:"Cosa circonda tutta la Città Alta?",o:["Un fiume","Un bosco","Le mura antiche","Il mare"],c:2},
+ {d:"Perché i due vagoncini non si scontrano mai?",o:["Vanno molto piano","Suonano il clacson","Uno passa di notte","Sono legati allo stesso cavo"],c:3},
+ {d:"Che dolce sembra polenta ma è dolce?",o:["Il panettone","La polenta e osei","La piadina","L'arancina"],c:1}]},
+
+{n:5,nome:"VERONA",reg:"Veneto",moto:"monster",km:95,ter:"Strade rosa e strette",scena:"arena",lon:10.99,lat:45.44,
+ storia:[
+"Verona è una città rosa.\n\nLe pietre hanno un colore caldo, tra il rosa e l'arancione.\n\nAl tramonto diventa ancora più bella, come se qualcuno avesse acceso una luce dentro i muri.",
+"In mezzo a una piazza grandissima c'è l'Arena.\n\nÈ un anfiteatro antico di quasi duemila anni!\n\n«Dentro ci cantano l'opera» dice Papà. «E non ci sono microfoni: la voce arriva da sola fino all'ultima fila.»\n\nDaniel resta a bocca aperta. Duemila anni e non si è ancora scaricata!",
+"Poi succede la cosa più buffa del viaggio.\n\nUna signora si affaccia da un balcone e canta: «Aaaaaaah!»\n\nLa moto, per non fare brutta figura, risponde: «Bruuuuum!»\n\nTutti scoppiano a ridere e applaudono.\n\n«Papà, ho cantato con una cantante vera!»"],
+ sapevi:"Le lettere lasciate a Verona per Giulietta ricevono davvero una risposta! Delle signore volontarie le leggono tutte e rispondono a mano.",
+ quiz:[
+ {d:"Di che colore sono le pietre di Verona?",o:["Rosa","Nere","Verdi","Blu"],c:0},
+ {d:"Come si chiama il grande anfiteatro?",o:["Il Colosseo","Il Duomo","L'Arena","La Lanterna"],c:2},
+ {d:"Perché lì non servono i microfoni?",o:["Perché si canta piano","La voce arriva da sola fino in fondo","Perché c'è poca gente","Perché è piccolo"],c:1},
+ {d:"Cosa accende il pubblico prima dello spettacolo?",o:["I telefoni","Le torce","I fuochi d'artificio","Tante piccole candeline"],c:3},
+ {d:"Chi risponde alla signora che canta?",o:["Il motore della moto","Papà","Un piccione","Un gatto"],c:0}]},
+
+{n:6,nome:"VENEZIA",reg:"Veneto",moto:"monster",km:120,ter:"Acqua al posto delle strade",scena:"gondola",lon:12.33,lat:45.44,
+ storia:[
+"A Venezia succede una cosa mai vista.\n\nLa moto di Daniel non si può usare!\n\n«Perché qui non ci sono strade» spiega un gondoliere. «Ci sono i canali. Al posto dell'asfalto c'è l'acqua!»",
+"Così la Ducati sale su una barchetta di legno.\n\nE Daniel attraversa Venezia galleggiando!\n\nPassano sotto i ponti bassi. Passano davanti ai palazzi color pesca e pistacchio.\n\nSembrano un gelato gigante, ma di mattoni.",
+"Daniel conta le cose incredibili.\n\nUn postino in barca. La verdura in barca. Gli operai in barca.\n\nE alla fine, con la sirena accesa, un'ambulanza. In barca!\n\n«È la prima volta che una moto va in gondola» ride il gondoliere.\n\n«È la prima volta che ci vado anche io!» dice Daniel."],
+ sapevi:"Venezia è costruita sopra milioni di pali di legno piantati nel fondo della laguna. Sott'acqua il legno non marcisce!",
+ quiz:[
+ {d:"Perché a Venezia non si può usare la moto?",o:["Perché è rotta","Perché non ci sono strade, ci sono i canali","Perché è vietato","Perché fa rumore"],c:1},
+ {d:"Come viaggia allora la Ducati?",o:["Sopra una barchetta di legno","In treno","A spinta","In aereo"],c:0},
+ {d:"Come si chiama chi guida la gondola?",o:["Il pizzaiolo","Il pescatore","Il gondoliere","Il marinaio"],c:2},
+ {d:"Quale mezzo di soccorso va in barca?",o:["I pompieri","La polizia","Il postino","L'ambulanza"],c:3},
+ {d:"Su cosa è costruita tutta la città?",o:["Su milioni di pali di legno","Sulla sabbia","Sopra una roccia","Su un ponte"],c:0}]},
+
+{n:7,nome:"BOLOGNA",reg:"Emilia-Romagna",moto:"panigale",km:155,ter:"Autostrada veloce",scena:"torri",lon:11.34,lat:44.49,
+ storia:[
+"Bologna è la città dove nascono le Ducati!\n\nC'è un quartiere che si chiama Borgo Panigale. Dentro c'è la fabbrica dove le moto vengono costruite un pezzo alla volta, con le mani.\n\nUn meccanico dà a Daniel una tuta rossa e la moto più veloce di tutte: la Panigale.",
+"«Attento» dice il meccanico. «Questa non cammina. Questa vola rasoterra!»\n\nDaniel fa un giro. Quando torna ha i capelli tutti all'indietro.\n\nRestano così per tre giorni!\n\nPoi mangia i tortellini. Ne conta ventidue.",
+"Dopo pranzo camminano sotto i portici: gallerie coperte lunghe chilometri, dove si passeggia anche quando piove.\n\nPoi Daniel vede due torri altissime. E tutte e due storte.\n\n«Papà, perché sono storte?»\n\n«Perché anche loro hanno mangiato troppi tortellini.»\n\nDaniel ride così tanto che deve sedersi."],
+ sapevi:"La Ducati è nata a Bologna nel 1926. All'inizio non costruiva moto, ma pezzi per le radio!",
+ quiz:[
+ {d:"Cosa si costruisce a Borgo Panigale?",o:["Le automobili","Le moto Ducati","Le biciclette","Le barche"],c:1},
+ {d:"Qual è la Ducati più veloce di tutte?",o:["La Monster","La Multistrada","La Panigale","La Diavel"],c:2},
+ {d:"Quanti tortellini mangia Daniel?",o:["Tre","Dieci","Cento","Ventidue"],c:3},
+ {d:"Come si chiamano le gallerie coperte di Bologna?",o:["I portici","I caruggi","I canali","Le mura"],c:0},
+ {d:"Secondo Papà, perché le torri sono storte?",o:["Per il vento","Perché hanno mangiato troppi tortellini","Perché sono vecchie","Per i piccioni"],c:1}]},
+
+{n:8,nome:"RIMINI",reg:"Emilia-Romagna",moto:"monster",km:120,ter:"Verso il mare Adriatico",scena:"ombrelloni",lon:12.57,lat:44.06,
+ storia:[
+"L'aria cambia. Diventa salata.\n\n«Papà! Un altro mare!» grida Daniel.\n\nÈ il mare Adriatico, piatto e azzurro.\n\nSulla spiaggia ci sono file e file di ombrelloni colorati. Blu, gialli, verdi, fino a diventare piccolissimi in fondo.",
+"«Quanti sono?» chiede Daniel.\n\n«Migliaia.»\n\n«Li conto!»\n\nDaniel arriva a quarantuno. Poi si distrae per un cane che ruba una ciabatta.\n\nPoi mangiano la piadina: un pane sottile piegato a metà, con dentro il prosciutto e il formaggio che si scioglie.",
+"Ma la cosa più sorprendente non è la spiaggia.\n\nDietro le case c'è un ponte bianco di duemila anni: il Ponte di Tiberio.\n\n«Non è un ponte-museo» dice Papà. «È un ponte vero. Ci passa ancora la gente tutti i giorni!»\n\nDaniel ci cammina sopra tre volte, per essere sicuro."],
+ sapevi:"Nei secoli hanno provato più di una volta a buttare giù il Ponte di Tiberio. Non ci sono mai riusciti: era costruito troppo bene!",
+ quiz:[
+ {d:"Come si chiama il mare che Daniel vede a Rimini?",o:["Il mare Adriatico","Lo Stretto","Il lago","L'oceano"],c:0},
+ {d:"Cosa riempie tutta la spiaggia di Rimini?",o:["Le barche","File di ombrelloni colorati","I sassi","Le palme"],c:1},
+ {d:"Cos'è la piadina?",o:["Un dolce al cioccolato","Una pasta lunga","Un pane sottile piegato a metà","Una zuppa calda"],c:2},
+ {d:"Quanti anni ha il Ponte di Tiberio?",o:["Dieci anni","Cento anni","Cinquecento anni","Circa duemila anni"],c:3},
+ {d:"Cosa c'è di speciale in quel ponte?",o:["Si usa ancora oggi","È tutto d'oro","Si alza e si abbassa","È fatto di legno"],c:0}]},
+
+{n:9,nome:"FIRENZE",reg:"Toscana",moto:"diavel",km:110,ter:"Tramonto sul fiume",scena:"pontevecchio",lon:11.25,lat:43.77,
+ storia:[
+"A Firenze il sole tramonta lentissimo, come se non avesse voglia di andare a letto.\n\nDaniel lo capisce benissimo. Anche lui è così!\n\nLa moto di oggi è la Diavel: nera, larga, bassa, con una gomma dietro grossa come un tronco d'albero.",
+"Daniel vede il Ponte Vecchio.\n\nNon è un ponte normale: ci hanno costruito sopra le case!\n\nCase vere, con le finestre e i vasi di fiori. Sopra un ponte. Da seicento anni.\n\n«Papà, e se a uno cade un calzino dalla finestra?»\n\n«Diventa un pesce. Un pesce a righe.»",
+"Daniel guarda giù nell'Arno, il fiume tutto dorato.\n\nE giura di aver visto passare un pesce a righe blu!\n\nPoi vanno a vedere una statua altissima: il David di Michelangelo.\n\n«Ha quasi il mio nome» dice Daniel. «Però a lui manca una cosa: il casco!»"],
+ sapevi:"Sul Ponte Vecchio una volta c'erano i macellai e puzzava tantissimo. Li hanno mandati via e sono arrivati gli orefici: da allora il ponte è tutto dorato!",
+ quiz:[
+ {d:"Quale Ducati guida Daniel a Firenze?",o:["La Diavel","La Monster","La Panigale","L'Hypermotard"],c:0},
+ {d:"Cosa c'è di speciale sul Ponte Vecchio?",o:["Si apre in due","Ci sono delle case costruite sopra","È fatto di vetro","Ci passano i treni"],c:1},
+ {d:"Come si chiama il fiume di Firenze?",o:["Il Po","Il Tevere","L'Arno","L'Adige"],c:2},
+ {d:"Chi ha scolpito la statua del David?",o:["Brunelleschi","Leonardo","Giulietta","Michelangelo"],c:3},
+ {d:"Cosa dice Daniel che manca alla statua?",o:["Il casco","Le scarpe","La moto","Il cappello"],c:0}]},
+
+{n:10,nome:"PISA",reg:"Toscana",moto:"hyper",km:85,ter:"Prato verde e curve",scena:"torrepisa",lon:10.40,lat:43.72,
+ storia:[
+"A Pisa c'è una torre che pende.\n\nPende da ottocento anni e non cade mai. Un po' come Daniel quando si addormenta sul divano!\n\nLa moto di oggi è l'Hypermotard: alta, magra, saltellante. Le piace tenere la ruota davanti per aria.",
+"Nel prato ci sono cento turisti.\n\nTutti in piedi, tutti con un braccio allungato, tutti che fanno la stessa foto: «Guarda, tengo su la torre!»\n\n«Papà, la torre la tengono su loro?»\n\n«Certo. A turni! E quando vanno a cena arriva il turno dei gatti.»",
+"Poi Papà spiega la verità.\n\nQuella torre è il campanile della cattedrale. Il terreno sotto Pisa è morbido e bagnato, e da una parte ha ceduto.\n\n«E adesso cade?»\n\n«No. L'hanno fermata. Ma storta rimane.»\n\n«Meglio» dice Daniel. «Dritta non ci verrebbe nessuno!»"],
+ sapevi:"La torre di Pisa pende perché il terreno sotto è morbido: in pratica è costruita sopra un budino gigante! Dentro ha quasi trecento scalini.",
+ quiz:[
+ {d:"Da quanto tempo pende la torre di Pisa?",o:["Da un anno","Da circa ottocento anni","Da ieri","Da cento anni"],c:1},
+ {d:"Quale moto usa Daniel a Pisa?",o:["La Diavel","La Monster","L'Hypermotard","La Multistrada"],c:2},
+ {d:"Cosa fanno tutti i turisti nel prato?",o:["Giocano a pallone","Dormono","Mangiano il gelato","La foto in cui sembra che tengano su la torre"],c:3},
+ {d:"Perché la torre pende davvero?",o:["Il terreno sotto è morbido e ha ceduto","Per colpa del vento","L'hanno fatta storta apposta","Perché è stata spinta"],c:0},
+ {d:"A cosa serve davvero la torre?",o:["A guardare il mare","È il campanile della cattedrale","A tenere l'orologio","È un faro"],c:1}]},
+
+{n:11,nome:"PERUGIA",reg:"Umbria",moto:"hyper",km:145,ter:"Colline tutte curve",scena:"fontana",lon:12.39,lat:43.11,
+ storia:[
+"La strada gira verso l'interno, dentro l'Umbria.\n\nLa chiamano il cuore verde d'Italia, e si capisce subito perché: è verde dappertutto!\n\nLe strade non vanno mai dritte per più di dieci metri.\n\n«Papà, questa strada è ubriaca!»\n\n«Ha duemila anni. Ha diritto di andare dove vuole.»",
+"In cima alla collina c'è Perugia.\n\nNella piazza grande c'è una fontana tonda, tutta scolpita.\n\nDaniel ci gira intorno e guarda le figure: i mesi, gli animali, i contadini, i leoni.\n\n«È un fumetto!» dice. «C'è una storia in ogni quadrato!»\n\nE ha ragione: settecento anni fa quasi nessuno sapeva leggere.",
+"Poi Daniel scopre una cosa strana.\n\nSotto Perugia, dentro la collina, ci sono le scale mobili!\n\nPassano in mezzo alle rovine di una fortezza antica.\n\nDaniel le fa cinque volte. Papà quattro, poi si siede su una panchina.\n\nE Perugia è la città del cioccolato. Papà gliene fa scegliere tre. Daniel ne prende quattro."],
+ sapevi:"Sotto Perugia c'è un'intera città nascosta: strade e case di cinquecento anni fa, sepolte sottoterra. Oggi ci si cammina dentro!",
+ quiz:[
+ {d:"Come si chiama la regione verde di Perugia?",o:["La Toscana","L'Umbria","La Liguria","La Sardegna"],c:1},
+ {d:"Perché Daniel dice che la fontana è un fumetto?",o:["Perché è colorata","Perché fa ridere","Ogni riquadro racconta una storia","Perché è di carta"],c:2},
+ {d:"Cosa c'è dentro la collina di Perugia?",o:["Un lago","Un treno","Una grotta","Delle scale mobili"],c:3},
+ {d:"Di quale dolce è famosa Perugia?",o:["Il cioccolato","Il gelato","La focaccia","Il panettone"],c:0},
+ {d:"Quanti cioccolatini sceglie Daniel invece di tre?",o:["Due","Quattro","Dieci","Nessuno"],c:1}]},
+
+{n:12,nome:"ROMA",reg:"Lazio",moto:"diavel",km:170,ter:"Duemila anni di storia",scena:"colosseo",lon:12.50,lat:41.90,
+ storia:[
+"E poi arriva Roma.\n\nRoma è enorme. Dentro ci stanno duemila anni di storia, un fiume, sette colli e un numero di gatti che nessuno ha mai provato a contare.\n\n«Roma va attraversata piano» dice Papà. «Sennò non si vede niente.»",
+"Si fermano davanti al Colosseo.\n\nÈ un anfiteatro gigantesco, ancora in piedi dopo duemila anni.\n\nDaniel accende il motore una volta sola: BRUUM-brum-brum!\n\nSette gatti si svegliano sopra un muretto.\n\n«Qua dentro combattevano i gladiatori» miagola il capo dei gatti.\n\n«E adesso?»\n\n«Adesso ci siamo noi. È molto meglio: si dorme di più!»",
+"Al tramonto vanno alla Fontana di Trevi.\n\n«Ti giri di spalle, chiudi gli occhi, esprimi un desiderio e lanci una monetina.»\n\nDaniel si gira. Chiude gli occhi. Lancia.\n\nNon vi dico qual era il desiderio. Ma riguardava una moto, e riguardava Papà.\n\n«Secondo te ha funzionato?»\n\n«Secondo me ha già funzionato.»"],
+ sapevi:"Le monetine della Fontana di Trevi non vengono buttate via: servono ad aiutare le persone che hanno bisogno. Quei desideri diventano spesa vera!",
+ quiz:[
+ {d:"Quanti colli ha Roma?",o:["Due","Sette","Dieci","Cento"],c:1},
+ {d:"Come si chiama il grande anfiteatro antico?",o:["L'Arena","Il Duomo","Il Colosseo","La Lanterna"],c:2},
+ {d:"Chi combatteva lì dentro duemila anni fa?",o:["I pirati","I cavalieri","I marinai","I gladiatori"],c:3},
+ {d:"Chi ci dorme sopra adesso?",o:["I gatti","I piccioni","I cani","I delfini"],c:0},
+ {d:"Cosa si fa alla Fontana di Trevi?",o:["Si fa il bagno","Si lancia una monetina e si esprime un desiderio","Si pesca","Si beve"],c:1}]},
+
+{n:13,nome:"NAPOLI",reg:"Campania",moto:"hyper",km:225,ter:"Vicoli stretti e clacson",scena:"vesuvio",lon:14.27,lat:40.85,
+ storia:[
+"A Napoli il traffico non è traffico: è una danza!\n\nTutti si muovono, tutti suonano il clacson, tutti parlano con le mani, tutti sorridono.\n\nE nessuno si arrabbia mai davvero.\n\nIn alto, tra un balcone e l'altro, il bucato sventola come le bandierine di una gara.",
+"Ogni tanto una signora cala un cestino con la corda fino in strada.\n\nQualcuno ci mette dentro il pane, e il cestino risale!\n\nDaniel decide che è l'invenzione più bella che abbia mai visto.\n\nPoi arrivano davanti a un forno a legna.",
+"Il pizzaiolo prende l'impasto. Lo stende. Lo fa volare in aria una volta sola.\n\nPoi il pomodoro rosso. La mozzarella bianca. Il basilico verde.\n\nRosso, bianco e verde: come la bandiera italiana!\n\n«Questa è la pizza margherita» dice. «È nata qui. Tutte le altre pizze del mondo sono sue cugine.»\n\nDietro la città, il Vesuvio sbuffa una nuvoletta."],
+ sapevi:"La pizza margherita si chiama così in onore di una regina di nome Margherita. Ma secondo Daniel la vera regina era la pizza!",
+ quiz:[
+ {d:"Cosa sventola tra i palazzi nei vicoli?",o:["Le bandiere","Il bucato steso ad asciugare","Gli aquiloni","Le luci di Natale"],c:1},
+ {d:"Cosa calano le signore dai balconi?",o:["Una scala","Una corda per giocare","Un cestino per il pane","Un secchio d'acqua"],c:2},
+ {d:"Quali sono i tre ingredienti della margherita?",o:["Prosciutto e funghi","Riso e ragù","Basilico, pinoli e aglio","Pomodoro, mozzarella e basilico"],c:3},
+ {d:"Come si chiama il vulcano dietro Napoli?",o:["Il Vesuvio","L'Etna","Il Monte Bianco","La Lanterna"],c:0},
+ {d:"A cosa viene paragonato il vulcano?",o:["A un gigante arrabbiato","A un drago vecchio e pigro","A un gatto che dorme","A una torta"],c:1}]},
+
+{n:14,nome:"BARI e MATERA",reg:"Puglia e Basilicata",moto:"monster",km:260,ter:"Colline e muretti a secco",scena:"matera",lon:16.60,lat:40.90,
+ storia:[
+"Giù, ancora più giù, fino al tacco dello stivale.\n\nA Bari le signore fanno la pasta sedute fuori dalla porta di casa!\n\nNon in cucina. In strada.\n\nLe mani vanno velocissime: tic, tac, tic, tac.",
+"«Si chiamano orecchiette» spiega una signora, «perché sembrano tante piccole orecchie.»\n\nNe regalano una ciotola intera a Daniel.\n\nLui ne prende una e ci parla dentro: «Pronto?»\n\nNon risponde nessuno. Daniel dice che è solo perché sono orecchie crude!",
+"Poi la moto sale verso l'interno e arriva a Matera.\n\nE Daniel resta a bocca aperta per un minuto intero.\n\nPerché Matera non è costruita sopra la roccia. Matera è scavata DENTRO la roccia!\n\nLa sera si accendono tutte le finestrelle, una dopo l'altra.\n\nSembra una montagna piena di lucciole."],
+ sapevi:"A Matera la gente vive da circa novemila anni. È uno dei posti abitati da più tempo in tutto il mondo!",
+ quiz:[
+ {d:"Dove fanno la pasta le signore di Bari?",o:["In cucina","Fuori dalla porta, sedute in strada","Al ristorante","In fabbrica"],c:1},
+ {d:"Perché la pasta si chiama orecchiette?",o:["Si mangia con le orecchie","Perché fa rumore","Perché sembra tante piccole orecchie","Perché è piccolissima"],c:2},
+ {d:"Cos'ha di straordinario la città di Matera?",o:["È tutta gialla","Galleggia sull'acqua","È sottoterra","Le case sono scavate dentro la roccia"],c:3},
+ {d:"Da quanti anni vive la gente a Matera?",o:["Da circa novemila anni","Da cento anni","Da mille anni","Da dieci anni"],c:0},
+ {d:"A cosa sembra Matera con le luci accese?",o:["A un albero di Natale","A una montagna piena di lucciole","A una nave","A un vulcano"],c:1}]},
+
+{n:15,nome:"REGGIO CALABRIA",reg:"Calabria",moto:"diavel",km:390,ter:"Lungomare fino alla punta",scena:"bronzi",lon:15.64,lat:38.11,
+ storia:[
+"La strada scende ancora, e ancora, e ancora.\n\n«Oggi arriviamo in fondo» dice Papà.\n\n«In fondo a cosa?»\n\n«In fondo allo stivale. Alla punta.»\n\nReggio Calabria è stretta tra la montagna e il mare, con un lungomare pieno di palme.",
+"Daniel si toglie il casco e guarda oltre il mare.\n\nE là, vicinissima, c'è una terra con le case e le montagne.\n\n«Papà, cos'è quella?»\n\n«Quella è la Sicilia.»\n\n«Ma è vicinissima!»\n\n«Il mare in mezzo si chiama Stretto di Messina. Nel punto più stretto sono poco più di tre chilometri.»",
+"In un museo Daniel vede due statue di bronzo verde: i Bronzi di Riace.\n\nSono due guerrieri con la barba riccia, fatti più di duemila anni fa.\n\nSono rimasti in fondo al mare per venticinque secoli!\n\n«Papà, hanno gli occhi!»\n\n«E i denti d'argento. Uno dei due sorride appena.»\n\n«Domani» dice Papà «prendiamo la nave.»"],
+ sapevi:"Certi giorni, sopra lo Stretto, appare un miraggio chiamato Fata Morgana: fa sembrare le case della Sicilia sospese in aria sopra il mare!",
+ quiz:[
+ {d:"Dove si trova Reggio Calabria?",o:["In cima allo stivale","Nella punta dello stivale","In mezzo al mare","Sulle Alpi"],c:1},
+ {d:"Come si chiama il mare tra Calabria e Sicilia?",o:["Il mare Adriatico","L'oceano","Lo Stretto di Messina","La laguna"],c:2},
+ {d:"Quanto è largo nel punto più stretto?",o:["Poco più di tre chilometri","Cento chilometri","Un metro","Mille chilometri"],c:0},
+ {d:"Come si chiamano le due statue di bronzo?",o:["I Gladiatori","I Bronzi di Riace","I Guerrieri di Roma","I Giganti"],c:1},
+ {d:"Dove sono rimaste per venticinque secoli?",o:["In una grotta","Sottoterra","In fondo al mare","In un castello"],c:2}]},
+
+{n:16,nome:"LO STRETTO",reg:"In mare",moto:"traghetto",km:3,ter:"Traversata in traghetto",scena:"traghetto",mare:true,lon:15.60,lat:38.16,
+ storia:[
+"La mattina dopo arrivano al porto.\n\nE Daniel scopre una cosa mai vista: una nave con la BOCCA!\n\nIl traghetto apre tutta la parte davanti e la appoggia sulla banchina come una rampa.\n\n«Papà, la nave mangia le macchine!»\n\n«E poi le sputa dall'altra parte del mare.»",
+"Daniel sale sul ponte all'aperto.\n\nLa nave parte. E allora succede la cosa più strana del viaggio.\n\nLa terra si allontana!\n\nNon la nave: la terra.\n\n«Papà, si muove la nave o si muove l'Italia?»\n\n«Si muove la nave.»\n\n«Non sembra!»",
+"Poi arrivano i delfini!\n\nTre, forse quattro. Saltano fuori tutti insieme e ricompaiono dieci metri più avanti.\n\nPoi arrivano i gabbiani, che volano accanto alla nave senza muovere le ali.\n\n«Perché ci seguono?»\n\n«Perché la nave smuove l'acqua e fa salire i pesci piccoli.»\n\nVenti minuti, e Daniel ha attraversato un mare!"],
+ sapevi:"Il traghetto dello Stretto trasporta anche i treni! I vagoni entrano nella nave su veri binari e poi vengono riattaccati dall'altra parte.",
+ quiz:[
+ {d:"Cosa apre il traghetto per far salire le auto?",o:["Il tetto","Una finestra","La parte davanti, come una bocca","Una scala"],c:2},
+ {d:"Quanto dura la traversata dello Stretto?",o:["Tutta la notte","Circa venti minuti","Tre giorni","Un'ora"],c:1},
+ {d:"Cosa sembra muoversi, invece della nave?",o:["Il cielo","Il sole","Il mare","La terra, che si allontana"],c:3},
+ {d:"Quali animali saltano accanto alla nave?",o:["I delfini","I gatti","Le marmotte","Le rane"],c:0},
+ {d:"Perché i gabbiani seguono il traghetto?",o:["Perché sono curiosi","Perché la nave fa salire i pesci piccoli","Perché hanno freddo","Perché si sono persi"],c:1}]},
+
+{n:17,nome:"CATANIA",reg:"Sicilia",moto:"panigale",km:95,ter:"Strade di pietra nera",scena:"etna",lon:15.09,lat:37.50,
+ storia:[
+"La Sicilia profuma di limoni e di arance.\n\nQui Daniel ritrova la Panigale rossa, perché le strade siciliane sono tutte curve.\n\nMa a un certo punto nota una cosa strana.\n\nLe case non sono più gialle o rosa. Sono NERE!",
+"«Papà, perché è tutto nero?»\n\n«Perché è pietra lavica. Questa città è costruita con la roccia del vulcano.»\n\nDaniel appoggia la mano su un muro. È caldo di sole e pieno di buchini.\n\n«Questa era lava?»\n\n«Questa era lava.»\n\nNella piazza c'è una fontana con sopra un elefantino di pietra nera.",
+"Poi vanno al mercato del pesce. È il posto più rumoroso che Daniel abbia mai sentito!\n\nI pescivendoli gridano i prezzi CANTANDO, con la voce che sale e scende.\n\nUn signore gli mette in mano mezzo limone: «Assaggia, picciriddu!»\n\nDaniel dà un morso e fa una faccia indimenticabile. Tutto il mercato ride e applaude!\n\nE sopra la città, enorme, c'è l'Etna."],
+ sapevi:"A Catania si fa colazione con la granita e la brioche: ghiaccio dolce dentro un panino morbido. Dolce, freddissima, di prima mattina!",
+ quiz:[
+ {d:"Di che colore sono le case di Catania?",o:["Rosa","Bianche","Nere, perché sono di pietra lavica","Verdi"],c:2},
+ {d:"Quale animale di pietra è il simbolo della città?",o:["Un leone","Un elefante","Un gatto","Un delfino"],c:1},
+ {d:"Come gridano i prezzi i pescivendoli?",o:["Sottovoce","Con il megafono","Fischiando","Cantando, come in una canzone"],c:3},
+ {d:"Come si chiama il grande vulcano sopra Catania?",o:["L'Etna","Il Vesuvio","La Mole","Il Monte Bianco"],c:0},
+ {d:"Come chiamano i siciliani l'Etna?",o:["Il Gigante","A Muntagna, cioè la Montagna","Il Drago","Il Nonno"],c:1}]},
+
+{n:18,nome:"PALERMO",reg:"Sicilia",moto:"panigale",km:210,ter:"Curve, gallerie e mare",scena:"palermo",lon:13.36,lat:38.12,
+ storia:[
+"Dall'altra parte della Sicilia c'è Palermo.\n\nÈ una città che non somiglia a nessun'altra.\n\nCi sono passati i greci, i romani, gli arabi, i normanni, gli spagnoli. E ognuno ha lasciato lì qualcosa.\n\nC'è una chiesa con le cupole rosse e tonde. C'è un palazzo con i soffitti tutti d'oro.",
+"«Papà, ma è tutta la stessa città?»\n\n«Tutta la stessa. È come se ognuno avesse aggiunto un pezzo senza togliere quelli di prima.»\n\n«Come le costruzioni!»\n\n«Esattamente come le costruzioni.»\n\nPoi Papà lo porta al mercato. Un mercato che urla!",
+"I venditori gridano in un modo speciale: un canto lungo che sale e poi cade.\n\n«Si chiama abbanniata» dice Papà. «Lo fanno da secoli. Ognuno ha il suo.»\n\n«Papà, questo mercato è un'orchestra!»\n\nPoi Daniel prova le arancine: palle di riso fritte con il ragù dentro.\n\n«Attento: qui si chiamano arancine. Ma a Catania si chiamano arancini!»"],
+ sapevi:"Dentro il palazzo dei re di Palermo c'è una cappella ricoperta di mosaici d'oro, fatti con milioni di tessere piccolissime!",
+ quiz:[
+ {d:"Perché Palermo non somiglia a nessun'altra città?",o:["Perché è piccolissima","Perché tanti popoli diversi ci hanno lasciato qualcosa","Perché è tutta nuova","Perché è sull'acqua"],c:1},
+ {d:"Di che colore sono le cupole di quella chiesa?",o:["Blu","Verdi","Rosse e tonde","Bianche"],c:2},
+ {d:"Come si chiama il canto dei venditori al mercato?",o:["L'opera","La ninna nanna","Il coro","L'abbanniata"],c:3},
+ {d:"Cosa sono le arancine?",o:["Palle di riso fritte con il ragù dentro","Delle arance dolci","Un tipo di pizza","Un gelato"],c:0},
+ {d:"Come si chiamano invece a Catania?",o:["Arance","Arancini, con la i","Palline","Crocchette"],c:1}]},
+
+{n:19,nome:"LA NAVE DI NOTTE",reg:"In mare",moto:"nave",km:400,ter:"Traversata notturna",scena:"nave",mare:true,notte:true,lon:10.60,lat:39.60,
+ storia:[
+"Questa volta non è un traghetto. È una NAVE. Una vera. Enorme!\n\nAlta come un palazzo di otto piani. Lunga come tre campi da calcio.\n\n«Ci entriamo dentro?»\n\n«Ci dormiamo dentro. Mentre noi dormiamo, lei naviga.»",
+"La cabina è piccolissima e perfetta.\n\nDue letti uno sopra l'altro e un oblò rotondo.\n\nDaniel sceglie il letto di sopra senza nemmeno chiedere, perché queste cose non si chiedono!\n\nLa nave suona: un suono lungo e bassissimo, che si sente nella pancia.\n\nPoi Palermo si allontana piano piano.",
+"E allora Daniel vede una cosa mai vista.\n\nIl mare di notte, senza nessuna terra intorno. Nero. Grandissimo. Silenzioso.\n\nE sopra, dappertutto, le STELLE. Tantissime!\n\n«Papà, perché qui ce ne sono di più?»\n\n«Perché in città le luci coprono quelle del cielo. Qui non c'è niente, e allora si vedono tutte.»\n\nDaniel si addormenta con le stelle nell'oblò."],
+ sapevi:"Sulle navi grandi la stanza dove si guida si chiama plancia. Di notte le luci dentro vengono spente, perché al buio gli occhi vedono meglio il mare!",
+ quiz:[
+ {d:"Quanto dura il viaggio verso la Sardegna?",o:["Venti minuti","Tutta la notte","Cinque minuti","Tre giorni"],c:1},
+ {d:"Come si chiama la finestra rotonda della cabina?",o:["Il finestrino","La plancia","L'oblò","Il vetro"],c:2},
+ {d:"Che rumore fa la nave prima di partire?",o:["Un fischio acuto","Un campanello","Una sirena veloce","Un suono lungo e bassissimo"],c:3},
+ {d:"Perché in mezzo al mare si vedono più stelle?",o:["Perché non ci sono luci di città a coprirle","Perché sono più vicine","Perché è estate","Perché il mare le riflette"],c:0},
+ {d:"Chi resta sveglio mentre tutti dormono?",o:["I gabbiani","Chi guida la nave e tiene la rotta","Il cuoco","Nessuno"],c:1}]},
+
+{n:20,nome:"STINTINO",reg:"Sardegna",moto:"multistrada",km:60,ter:"Sterrato fino alla spiaggia",scena:"pelosa",lon:8.22,lat:40.94,
+ storia:[
+"Daniel si sveglia perché è cambiato il rumore.\n\nIl motore della nave va piano piano, quasi un sussurro.\n\nGuarda dall'oblò: all'orizzonte c'è una linea verde. La Sardegna!\n\nNel garage lo aspetta la vecchia amica delle partenze: la Multistrada.\n\n«Perché lei?»\n\n«Perché qui c'è lo sterrato, i sassi e la sabbia. E lei non ha paura di niente.»",
+"Arrivano a Stintino, un paesino bianco di pescatori.\n\nPoi, in fondo a una strada, Papà spegne il motore e dice soltanto:\n\n«Guarda.»\n\nDaniel si toglie il casco.\n\nE vede La Pelosa: una spiaggia di sabbia bianchissima, fine come lo zucchero a velo.",
+"L'acqua non sembra vera.\n\nNon è blu. Non è verde. È trasparente: si vede il fondo!\n\nIn mezzo al mare c'è un isolotto con sopra una vecchia torre di pietra.\n\nDaniel cerca un nome per quel colore. Alla fine lo chiama blu-Daniel.\n\n«Siamo arrivati in fondo» dice.\n\nPapà sorride: «E adesso si torna su. Ma da un'altra strada.»"],
+ sapevi:"La sabbia della Pelosa è così fine e preziosa che è vietato portarla via. Ogni granello che finisce in una scarpa non torna più indietro!",
+ quiz:[
+ {d:"Come capisce Daniel che stanno arrivando?",o:["Perché il rumore del motore cambia","Perché suona la sveglia","Perché lo chiama Papà","Perché vede il sole"],c:0},
+ {d:"Quale moto lo aspetta in Sardegna?",o:["La Panigale","La Multistrada","La Monster","La Diavel"],c:1},
+ {d:"Come si chiama la spiaggia famosa di Stintino?",o:["La Lanterna","L'Arena","La Pelosa","La Pelosina"],c:2},
+ {d:"Cosa si riesce a vedere nell'acqua?",o:["I delfini","Le stelle","Le barche","Il fondo, perché è trasparente"],c:3},
+ {d:"Cosa c'è sull'isolotto davanti alla spiaggia?",o:["Una vecchia torre di pietra","Una casa","Un albero","Un faro acceso"],c:0}]}
+];
+
+/* ============================================================
+   MAPPA
+   ============================================================ */
+const TERRA=[
+[[7.60,43.79],[8.48,44.31],[8.93,44.41],[9.83,44.10],[10.24,43.87],[10.31,43.55],[10.52,42.92],
+ [11.00,42.65],[11.80,42.09],[12.28,41.73],[13.05,41.25],[13.85,41.20],[14.25,40.84],[14.77,40.68],
+ [15.25,40.20],[15.77,39.90],[16.03,39.36],[16.23,38.91],[15.90,38.68],[15.72,38.25],[15.70,37.95],
+ [16.20,38.10],[16.55,38.69],[17.13,39.08],[17.18,39.30],[16.70,39.62],[16.55,40.05],[17.24,40.46],
+ [17.85,40.15],[18.36,39.79],[18.50,40.00],[18.10,40.50],[17.50,40.80],[16.87,41.13],[16.28,41.32],
+ [15.92,41.63],[16.19,41.90],[15.50,41.92],[14.99,42.00],[14.22,42.46],[13.51,43.62],[12.90,43.95],
+ [12.38,44.25],[12.30,45.05],[12.33,45.43],[13.40,45.60],[13.65,46.05],[13.00,46.55],[12.14,46.54],
+ [11.51,46.99],[10.75,46.85],[10.15,46.62],[9.40,46.50],[8.95,46.10],[8.29,46.12],[7.87,45.93],
+ [7.10,45.90],[6.78,45.42],[7.00,44.85],[7.00,44.40],[7.60,43.79]],
+[[15.56,38.19],[14.80,38.15],[14.02,38.04],[13.36,38.18],[12.75,38.10],[12.44,37.80],[12.85,37.58],
+ [13.35,37.40],[13.95,37.12],[14.60,36.82],[15.10,36.70],[15.29,37.07],[15.09,37.50],[15.29,37.85],[15.56,38.19]],
+[[9.19,41.24],[9.50,40.92],[9.70,40.57],[9.75,40.25],[9.62,39.60],[9.52,39.14],[9.11,39.21],
+ [8.44,39.06],[8.38,39.35],[8.50,39.90],[8.42,40.10],[8.32,40.56],[8.22,40.94],[8.71,40.92],[9.19,41.24]]
+];
+const MW=330,MH=430,LO0=6.2,LO1=19.2,LA0=36.3,LA1=47.4;
+function px(lon,lat){
+  const s=Math.min(MW/(LO1-LO0),MH/(LA1-LA0));
+  const ox=(MW-(LO1-LO0)*s)/2, oy=(MH-(LA1-LA0)*s)/2;
+  return [ox+(lon-LO0)*s, MH-(oy+(lat-LA0)*s)];
+}
+
+/* ============================================================
+   STATO
+   ============================================================ */
+const CREDITI_INIZIALI=100, PREMIO=12, BONUS=25, RIFORNIMENTO=50;
+let S={};
+function reset(){
+  S={tappa:0,crediti:CREDITI_INIZIALI,km:0,trofei:0,giuste:0,risposte:0,
+     rifornimenti:0,fatte:[],quizIdx:0,quizGiuste:0,storiaIdx:0};
+}
+function costo(t){ return t.km===0?0:Math.max(8,Math.min(26,Math.round(t.km/18)+8)); }
+
+/* ============================================================
+   SCENE
+   ============================================================ */
+function svgScena(k,notte){
+  const n=notte;
+  const cielo = n? "#0d1a33":"#bfe3f0";
+  const terra = n? "#16305c":"#7fbf6a";
+  const sag   = n? "#0a1226":"#6b5f4a";
+  const F={
+    mole:`<rect x="150" y="60" width="16" height="70" fill="${sag}"/><path d="M158 20 L166 62 L150 62 Z" fill="${sag}"/>
+          <path d="M60 130 L110 70 L150 130 Z" fill="${sag}" opacity=".7"/><path d="M200 130 L250 60 L300 130 Z" fill="${sag}" opacity=".7"/>`,
+    porto:`<rect x="60" y="70" width="10" height="60" fill="${sag}"/><rect x="60" y="70" width="46" height="8" fill="${sag}"/>
+           <rect x="130" y="60" width="10" height="70" fill="${sag}"/><rect x="130" y="60" width="50" height="8" fill="${sag}"/>
+           <rect x="230" y="40" width="18" height="90" fill="${sag}"/><circle cx="239" cy="36" r="9" fill="#ffd97a"/>
+           <rect x="72" y="104" width="22" height="14" fill="#c8102e"/><rect x="98" y="104" width="22" height="14" fill="#2a7fb8"/>
+           <rect x="145" y="104" width="22" height="14" fill="#e8a33c"/>`,
+    duomo:`<path d="M110 130 L110 70 L150 40 L190 70 L190 130 Z" fill="${sag}"/>
+           <path d="M120 70 L124 44 L128 70 Z M140 66 L144 32 L148 66 Z M160 66 L164 32 L168 66 Z M180 70 L184 44 L188 70 Z" fill="${sag}"/>
+           <circle cx="150" cy="26" r="6" fill="#f2c14e"/>`,
+    mura:`<path d="M40 130 L40 90 L300 60 L300 130 Z" fill="${sag}"/>
+          <rect x="120" y="40" width="14" height="42" fill="${sag}"/><rect x="200" y="34" width="14" height="40" fill="${sag}"/>
+          <rect x="150" y="96" width="26" height="34" fill="${n?"#1b2a4d":"#8a7c62"}"/>`,
+    arena:`<ellipse cx="170" cy="100" rx="90" ry="34" fill="${sag}"/>
+           <rect x="80" y="62" width="180" height="42" fill="${sag}"/>
+           <circle cx="110" cy="80" r="9" fill="${cielo}"/><circle cx="145" cy="80" r="9" fill="${cielo}"/>
+           <circle cx="180" cy="80" r="9" fill="${cielo}"/><circle cx="215" cy="80" r="9" fill="${cielo}"/>`,
+    gondola:`<path d="M60 116 q90 26 240 0 l-14 16 q-106 18 -212 0 Z" fill="${sag}"/>
+             <path d="M150 116 L160 66 L170 116 Z" fill="${sag}"/>
+             <rect x="110" y="60" width="26" height="56" fill="${sag}" opacity=".8"/>
+             <rect x="200" y="52" width="26" height="64" fill="${sag}" opacity=".8"/>`,
+    torri:`<rect x="140" y="26" width="18" height="104" fill="${sag}" transform="rotate(4 149 78)"/>
+           <rect x="184" y="48" width="16" height="82" fill="${sag}" transform="rotate(-5 192 89)"/>`,
+    ombrelloni:`<g fill="${sag}"><path d="M60 92 a24 14 0 0 1 48 0 z"/><rect x="82" y="92" width="4" height="30"/>
+      <path d="M130 92 a24 14 0 0 1 48 0 z"/><rect x="152" y="92" width="4" height="30"/>
+      <path d="M200 92 a24 14 0 0 1 48 0 z"/><rect x="222" y="92" width="4" height="30"/></g>`,
+    pontevecchio:`<path d="M50 112 L300 112 L300 128 L50 128 Z" fill="${sag}"/>
+      <path d="M80 112 a22 18 0 0 1 44 0 z M160 112 a22 18 0 0 1 44 0 z M240 112 a22 18 0 0 1 44 0 z" fill="${cielo}"/>
+      <rect x="70" y="78" width="40" height="34" fill="${sag}"/><rect x="130" y="70" width="44" height="42" fill="${sag}"/>
+      <rect x="196" y="76" width="42" height="36" fill="${sag}"/>`,
+    torrepisa:`<g transform="rotate(-7 170 128)"><rect x="152" y="36" width="36" height="92" fill="${sag}"/>
+      <rect x="148" y="30" width="44" height="9" fill="${sag}"/>
+      <g fill="${cielo}"><rect x="158" y="52" width="24" height="3"/><rect x="158" y="68" width="24" height="3"/>
+      <rect x="158" y="84" width="24" height="3"/><rect x="158" y="100" width="24" height="3"/></g></g>`,
+    fontana:`<ellipse cx="170" cy="118" rx="58" ry="14" fill="${sag}"/>
+      <rect x="140" y="82" width="60" height="30" fill="${sag}"/><rect x="162" y="56" width="16" height="28" fill="${sag}"/>
+      <circle cx="170" cy="50" r="8" fill="${sag}"/>
+      <path d="M60 128 L110 88 L150 128 Z M210 128 L262 84 L305 128 Z" fill="${sag}" opacity=".55"/>`,
+    colosseo:`<path d="M92 128 L92 60 q78 -26 156 0 L248 128 Z" fill="${sag}"/>
+      <g fill="${cielo}"><circle cx="118" cy="78" r="8"/><circle cx="148" cy="72" r="8"/><circle cx="178" cy="70" r="8"/>
+      <circle cx="208" cy="72" r="8"/><circle cx="236" cy="78" r="8"/>
+      <circle cx="118" cy="104" r="8"/><circle cx="148" cy="100" r="8"/><circle cx="178" cy="98" r="8"/>
+      <circle cx="208" cy="100" r="8"/><circle cx="236" cy="104" r="8"/></g>`,
+    vesuvio:`<path d="M70 128 L150 52 L172 52 L250 128 Z" fill="${sag}"/>
+      <ellipse cx="161" cy="46" rx="16" ry="7" fill="${n?"#2b3d66":"#cfcfcf"}"/>
+      <circle cx="150" cy="34" r="9" fill="#d9d9d9" opacity=".8"/><circle cx="168" cy="24" r="7" fill="#d9d9d9" opacity=".6"/>`,
+    matera:`<g fill="${sag}"><rect x="60" y="96" width="34" height="32"/><rect x="100" y="80" width="34" height="48"/>
+      <rect x="140" y="92" width="34" height="36"/><rect x="180" y="72" width="34" height="56"/>
+      <rect x="220" y="88" width="34" height="40"/><rect x="260" y="100" width="34" height="28"/></g>
+      <g fill="#ffd97a"><rect x="70" y="106" width="8" height="8"/><rect x="110" y="92" width="8" height="8"/>
+      <rect x="150" y="102" width="8" height="8"/><rect x="190" y="84" width="8" height="8"/>
+      <rect x="230" y="98" width="8" height="8"/></g>`,
+    bronzi:`<g fill="${sag}"><rect x="130" y="46" width="22" height="82"/><circle cx="141" cy="40" r="12"/>
+      <rect x="190" y="46" width="22" height="82"/><circle cx="201" cy="40" r="12"/></g>
+      <rect x="110" y="122" width="122" height="8" fill="${sag}" opacity=".7"/>`,
+    traghetto:`<path d="M0 118 q40 -8 80 0 t80 0 t80 0 t100 0 L340 140 L0 140 Z" fill="${n?"#0d2440":"#2a7fb8"}"/>
+      <path d="M250 128 q10 -14 22 -4 q-10 10 -22 4" fill="#5f93b5"/>
+      <path d="M290 122 q10 -14 22 -4 q-10 10 -22 4" fill="#5f93b5"/>`,
+    etna:`<path d="M40 128 L140 40 L166 40 L280 128 Z" fill="${sag}"/>
+      <path d="M126 56 L180 56 L166 40 L140 40 Z" fill="${n?"#40507a":"#f2f2f2"}"/>
+      <circle cx="150" cy="30" r="10" fill="#e8e8e8" opacity=".85"/><circle cx="170" cy="18" r="7" fill="#e8e8e8" opacity=".6"/>`,
+    palermo:`<rect x="100" y="66" width="120" height="62" fill="${sag}"/>
+      <path d="M118 66 a16 16 0 0 1 32 0 z M170 66 a16 16 0 0 1 32 0 z" fill="#b8443a"/>
+      <rect x="70" y="86" width="20" height="42" fill="${sag}"/><rect x="232" y="86" width="20" height="42" fill="${sag}"/>
+      <g fill="#e8a33c"><circle cx="120" cy="112" r="6"/><circle cx="136" cy="112" r="6"/><circle cx="152" cy="112" r="6"/></g>`,
+    nave:`<path d="M0 120 L340 120 L340 140 L0 140 Z" fill="#0a1a33"/>
+      <g fill="#ffd97a" opacity=".9"><rect x="120" y="96" width="7" height="7"/><rect x="140" y="96" width="7" height="7"/>
+      <rect x="160" y="96" width="7" height="7"/><rect x="180" y="96" width="7" height="7"/><rect x="200" y="96" width="7" height="7"/></g>`,
+    pelosa:`<path d="M0 122 L340 122 L340 140 L0 140 Z" fill="#7fd4d8"/>
+      <path d="M0 114 L340 114 L340 124 L0 124 Z" fill="#f0e4c0"/>
+      <rect x="236" y="70" width="22" height="46" fill="${sag}"/><rect x="230" y="64" width="34" height="8" fill="${sag}"/>`
+  };
+  const stelle = n ? Array.from({length:40},()=>`<circle cx="${(Math.random()*340).toFixed(0)}" cy="${(Math.random()*80).toFixed(0)}" r="${Math.random()<.3?1.6:1}" fill="#fff" opacity="${(0.5+Math.random()*0.5).toFixed(2)}"/>`).join("") : "";
+  const sole = n ? `<circle cx="276" cy="30" r="15" fill="#fdf6d8"/>` : `<circle cx="284" cy="28" r="17" fill="#ffe9a8"/>`;
+  return `<svg width="100%" height="100%" viewBox="0 0 340 140" preserveAspectRatio="xMidYMid slice">
+    <rect width="340" height="140" fill="${cielo}"/>${stelle}${sole}
+    <rect y="126" width="340" height="14" fill="${terra}"/>
+    ${F[k]||""}
+  </svg>`;
+}
+
+/* ============================================================
+   UTILI
+   ============================================================ */
+const app=document.getElementById("app");
+function el(h){const d=document.createElement("div");d.innerHTML=h.trim();return d.firstChild;}
+function hud(){
+  return `<div class="hud">
+    <div class="box">⛽ Benzina <span class="val">${S.crediti}</span></div>
+    <div class="box">🛣️ <span class="val">${S.km}</span> km</div>
+    <div class="box">🏆 <span class="val">${S.trofei}</span></div>
+    <div class="box">📍 <span class="val">${S.fatte.length}/20</span></div>
+    <div class="sp"></div>
+    <button class="mini" onclick="ricomincia()">↺ Ricomincia</button>
+  </div>`;
+}
+function parla(txt){
+  try{
+    if(!("speechSynthesis" in window))return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(txt.replace(/«|»/g,'"'));
+    u.lang="it-IT"; u.rate=.86; u.pitch=1.05;
+    const v=speechSynthesis.getVoices().find(x=>x.lang&&x.lang.toLowerCase().startsWith("it"));
+    if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function stop(){ try{speechSynthesis.cancel()}catch(e){} }
+function ricomincia(){
+  if(!confirm("Vuoi ricominciare il viaggio da capo?"))return;
+  stop(); reset(); schermataIntro();
+}
+window.ricomincia=ricomincia;
+
+/* ============================================================
+   SCHERMATE
+   ============================================================ */
+function schermataIntro(){
+  stop();
+  app.innerHTML=`<div class="scr centro">
+    <div style="background:var(--navy);margin:-16px -16px 14px;padding:22px 12px">
+      <h1>Daniel e il<br>Grande Giro d'Italia</h1>
+      <div style="color:#eaf0fb;font-size:12px;letter-spacing:2px;margin-top:10px">VENTI TAPPE · CINQUE DUCATI · DUE NAVI</div>
+    </div>
+    <div style="display:flex;justify-content:center;margin:6px 0">${svgMoto("multistrada")}</div>
+    <div class="sapevi" style="text-align:left;font-size:15px">
+      Ciao Daniel! Oggi parti in moto da Torino e arrivi fino in Sardegna.<br><br>
+      Ad ogni tappa ascolti la storia, poi rispondi a <b>5 domande</b>.<br><br>
+      Ogni risposta giusta ti dà <b>benzina</b> per continuare il viaggio.<br>
+      Se sbagli non succede niente di male: si va avanti lo stesso!
+    </div>
+    <button class="big" id="via">🏍️ Si parte!</button>
+    <div class="sotto">Un regalo di compleanno da Papà</div>
+  </div>`;
+  document.getElementById("via").onclick=()=>{reset();schermataMappa();};
+}
+
+function schermataMappa(){
+  stop();
+  const paths=TERRA.map(sh=>{
+    const d=sh.map((p,i)=>{const[x,y]=px(p[0],p[1]);return (i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);}).join(" ")+" Z";
+    return `<path d="${d}" fill="#e9dec2" stroke="#b2a27c" stroke-width="1.5"/>`;
+  }).join("");
+  let linee="",punti="";
+  TAPPE.forEach((t,i)=>{
+    const[x,y]=px(t.lon,t.lat);
+    if(i>0){
+      const p=TAPPE[i-1],[x0,y0]=px(p.lon,p.lat);
+      const mare=t.mare||p.mare;
+      linee+=`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"
+        stroke="${mare?"#0d4a70":"#c8102e"}" stroke-width="2" stroke-dasharray="${mare?"2 3":"4 3"}" opacity=".6"/>`;
+    }
+    const fatta=S.fatte.includes(t.n), ora=(i===S.tappa);
+    const col=fatta?"#2f7d4f":(ora?"#c8102e":(t.mare?"#5f93b5":"#c9c2b2"));
+    const r=ora?7:4.5;
+    punti+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${col}" stroke="#fff" stroke-width="2"/>`;
+    if(ora)punti+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="12" fill="none" stroke="#c8102e" stroke-width="2" opacity=".5"><animate attributeName="r" values="9;16;9" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0;.7" dur="1.6s" repeatCount="indefinite"/></circle>`;
+  });
+  const righe=TAPPE.map((t,i)=>{
+    const fatta=S.fatte.includes(t.n), ora=(i===S.tappa), bloccata=i>S.tappa;
+    return `<button class="tappa-riga ${fatta?"fatta":""} ${ora?"ora":""}" ${bloccata?"disabled":""} data-i="${i}">
+      <span class="num">${fatta?"✓":t.n}</span>
+      <span class="nm">${t.nome}</span>
+      <span>${bloccata?"🔒":(t.mare?"⛴️":"🏍️")}</span>
+    </button>`;
+  }).join("");
+  app.innerHTML=hud()+`<div class="scr">
+    <h2 class="centro">La mappa del viaggio</h2>
+    <div class="sotto" style="margin-bottom:10px">Tocca la tappa con il pallino rosso per partire</div>
+    <div class="mapwrap">
+      <div class="mapbox"><svg width="200" height="${Math.round(200*MH/MW)}" viewBox="0 0 ${MW} ${MH}">${paths}${linee}${punti}</svg></div>
+      <div class="listbox">${righe}</div>
+    </div>
+  </div>`;
+  app.querySelectorAll(".tappa-riga:not(:disabled)").forEach(b=>{
+    b.onclick=()=>{S.tappa=+b.dataset.i;schermataBriefing();};
+  });
+}
+
+function schermataBriefing(){
+  stop();
+  const t=TAPPE[S.tappa], m=MOTO[t.moto], c=costo(t);
+  const poveri = S.crediti < c;
+  if(poveri){ S.crediti+=RIFORNIMENTO; S.rifornimenti++; }
+  const specs=m.spec.map(s=>`<div><b>${s[0]}</b>${s[1]}</div>`).join("");
+  app.innerHTML=hud()+`<div class="scr">
+    <div class="centro">
+      <span class="pill ${t.mare?"mare":""}">Tappa ${t.n} di 20</span>
+      <h2 style="margin:8px 0 2px">${t.nome}</h2>
+      <div class="sotto" style="margin:0">${t.reg}</div>
+    </div>
+    ${poveri?`<div class="feedback no" style="margin-top:10px">⛽ <b>Papà fa il pieno!</b> Eri quasi senza benzina, così Papà ti ha regalato ${RIFORNIMENTO} litri. Il viaggio non si ferma mai!</div>`:``}
+    <div class="scheda">
+      <div class="top"><b>${m.nome}</b><span>${m.ruolo}</span></div>
+      <div class="garage">${svgMoto(t.moto)}</div>
+      <div style="padding:8px 12px;font-size:13px;font-style:italic;border-bottom:2px solid #e3dac6">«${m.frase}»</div>
+      <div class="specs">${specs}</div>
+    </div>
+    <div class="riga-costo">
+      <div class="costo"><b>Terreno</b><span style="font-size:12px;color:var(--navy)">${t.ter}</span></div>
+      <div class="costo"><b>Distanza</b><span>${t.km} km</span></div>
+      <div class="costo"><b>Benzina</b><span>−${c} ⛽</span></div>
+    </div>
+    <div class="centro"><button class="big ${t.mare?"blu":""}" id="parti">${t.mare?"⛴️ Imbarco!":"🏍️ Parti!"}</button></div>
+  </div>`;
+  document.getElementById("parti").onclick=()=>{
+    S.crediti-=c; S.km+=t.km; schermataViaggio();
+  };
+}
+
+function schermataViaggio(){
+  const t=TAPPE[S.tappa], notte=!!t.notte, mare=!!t.mare;
+  const dur=3.4;
+  app.innerHTML=hud()+`<div class="scr">
+    <div class="centro"><span class="pill ${mare?"mare":""}">${mare?"In navigazione":"In viaggio"}</span></div>
+    <div class="viaggio ${notte?"notte":""}" style="margin-top:10px">
+      <div class="strato" style="animation:scorri 3s linear infinite">${svgScena(t.scena,notte)}${svgScena(t.scena,notte)}</div>
+      <div class="moto-box ${mare?"barca":""}">${svgMoto(t.moto)}</div>
+      ${!mare?`<div style="position:absolute;left:0;bottom:0;width:200%;height:28px;background:#5c5a55;animation:scorri 0.7s linear infinite">
+        <div style="position:absolute;top:12px;width:100%;height:4px;background:repeating-linear-gradient(90deg,#fff 0 26px,transparent 26px 60px)"></div></div>`:``}
+    </div>
+    <div class="barra"><i id="pb"></i></div>
+    <div class="centro" style="margin-top:10px"><button class="big ghost" id="salta">Salta ▶</button></div>
+  </div>`;
+  const pb=document.getElementById("pb");
+  requestAnimationFrame(()=>{pb.style.transition=`width ${dur}s linear`;pb.style.width="100%";});
+  const go=()=>{clearTimeout(tm);S.storiaIdx=0;schermataStoria();};
+  const tm=setTimeout(go,dur*1000);
+  document.getElementById("salta").onclick=go;
+}
+
+function schermataStoria(){
+  stop();
+  const t=TAPPE[S.tappa], i=S.storiaIdx, tot=t.storia.length, txt=t.storia[i];
+  app.innerHTML=hud()+`<div class="scr">
+    <div class="centro"><span class="pill ${t.mare?"mare":""}">${t.nome}</span></div>
+    <div style="height:110px;border:3px solid var(--navy);margin:10px 0;overflow:hidden">${svgScena(t.scena,t.notte)}</div>
+    <div class="storia">${txt}</div>
+    <div class="punti">${t.storia.map((_,k)=>`<span class="punto ${k<=i?"on":""}"></span>`).join("")}</div>
+    <div class="riga-btn">
+      <button class="leggi" id="leggi">🔊 Leggimi</button>
+      <button class="big" id="av">${i<tot-1?"Avanti ▶":"Lo sapevi? ▶"}</button>
+    </div>
+  </div>`;
+  document.getElementById("leggi").onclick=()=>parla(txt);
+  document.getElementById("av").onclick=()=>{
+    stop();
+    if(i<tot-1){S.storiaIdx++;schermataStoria();}else{schermataSapevi();}
+  };
+}
+
+function schermataSapevi(){
+  stop();
+  const t=TAPPE[S.tappa];
+  app.innerHTML=hud()+`<div class="scr centro">
+    <div style="font-size:44px;margin:6px 0">💡</div>
+    <h2>Lo sapevi?</h2>
+    <div class="sapevi" style="text-align:left">${t.sapevi}</div>
+    <div class="riga-btn">
+      <button class="leggi" id="leggi">🔊 Leggimi</button>
+      <button class="big verde" id="av">✏️ Vai al quiz!</button>
+    </div>
+  </div>`;
+  document.getElementById("leggi").onclick=()=>parla(t.sapevi);
+  document.getElementById("av").onclick=()=>{
+    stop();S.quizIdx=0;S.quizGiuste=0;schermataQuiz();
+  };
+}
+
+function schermataQuiz(){
+  stop();
+  const t=TAPPE[S.tappa], q=t.quiz[S.quizIdx], LET=["A","B","C","D"];
+  app.innerHTML=hud()+`<div class="scr">
+    <div class="centro">
+      <span class="pill">Domanda ${S.quizIdx+1} di 5</span>
+      <div class="sotto" style="margin-top:6px">${t.nome} · giuste finora: ${S.quizGiuste}</div>
+    </div>
+    <div class="domanda">${q.d}</div>
+    <div id="opz">${q.o.map((o,i)=>`<button class="opz" data-i="${i}"><span class="let">${LET[i]}</span><span>${o}</span></button>`).join("")}</div>
+    <div class="centro"><button class="leggi" id="leggi">🔊 Leggimi la domanda</button></div>
+  </div>`;
+  document.getElementById("leggi").onclick=()=>parla(q.d+". "+q.o.map((o,i)=>LET[i]+". "+o).join(". "));
+  app.querySelectorAll(".opz").forEach(b=>{ b.onclick=()=>rispondi(+b.dataset.i); });
+}
+
+const LODI=["Bravissimo!","Perfetto!","Esatto!","Grande Daniel!","Proprio così!","Bravo campione!"];
+const CONSOLA=["Quasi! Guarda qual era.","Non fa niente, si impara così!","Ci sta! Adesso lo sai.","Nessun problema, si va avanti lo stesso!"];
+
+function rispondi(scelta){
+  const t=TAPPE[S.tappa], q=t.quiz[S.quizIdx], giusto=(scelta===q.c);
+  S.risposte++;
+  if(giusto){S.quizGiuste++;S.giuste++;S.crediti+=PREMIO;}
+  app.querySelectorAll(".opz").forEach((b,i)=>{
+    b.disabled=true;
+    if(i===q.c)b.classList.add("giusta");
+    else if(i===scelta)b.classList.add("sbagliata");
+  });
+  const msg=giusto
+    ? `<div class="feedback ok">✅ <b>${LODI[Math.floor(Math.random()*LODI.length)]}</b> Hai guadagnato <b>${PREMIO} litri</b> di benzina!</div>`
+    : `<div class="feedback no">🙂 <b>${CONSOLA[Math.floor(Math.random()*CONSOLA.length)]}</b><br>La risposta giusta era: <b>${q.o[q.c]}</b></div>`;
+  const box=el(`<div>${msg}<div class="centro"><button class="big" id="pross">${S.quizIdx<4?"Prossima domanda ▶":"Vedi il risultato ▶"}</button></div></div>`);
+  document.getElementById("opz").after(box);
+  document.getElementById("pross").onclick=()=>{
+    if(S.quizIdx<4){S.quizIdx++;schermataQuiz();}else{schermataRisultato();}
+  };
+  box.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function schermataRisultato(){
+  stop();
+  const t=TAPPE[S.tappa], g=S.quizGiuste, pieno=(g===5);
+  if(pieno){S.trofei++;S.crediti+=BONUS;}
+  if(!S.fatte.includes(t.n))S.fatte.push(t.n);
+  const ultima=(S.tappa>=TAPPE.length-1);
+  const stelle="★".repeat(g)+"☆".repeat(5-g);
+  app.innerHTML=hud()+`<div class="scr centro">
+    ${pieno?`<div class="trofeo">🏆</div>`:`<div style="font-size:46px">${g>=3?"😀":"🙂"}</div>`}
+    <h2>${t.nome} completata!</h2>
+    <div style="font-size:30px;color:var(--oro);letter-spacing:6px;margin:8px 0">${stelle}</div>
+    <div style="font-size:17px;margin-bottom:8px">Hai risposto giusto a <b>${g}</b> domande su 5</div>
+    ${pieno?`<div class="feedback ok">🏆 <b>TROFEO CONQUISTATO!</b> Cinque su cinque! Bonus di <b>${BONUS} litri</b> di benzina.</div>`
+           :`<div class="feedback no">Vuoi riprovare il quiz per prendere il trofeo? Puoi farlo quante volte vuoi!</div>`}
+    <table class="tab">
+      <tr><td>Benzina nel serbatoio</td><td>${S.crediti} ⛽</td></tr>
+      <tr><td>Chilometri percorsi</td><td>${S.km} km</td></tr>
+      <tr><td>Trofei vinti</td><td>${S.trofei} 🏆</td></tr>
+    </table>
+    <div class="riga-btn">
+      ${!pieno?`<button class="big ghost" id="ripeti">↺ Rifai il quiz</button>`:``}
+      <button class="big ${ultima?"verde":""}" id="av">${ultima?"🏁 Fine del viaggio!":"🗺️ Vai alla mappa"}</button>
+    </div>
+  </div>`;
+  const rip=document.getElementById("ripeti");
+  if(rip)rip.onclick=()=>{S.quizIdx=0;S.giuste-=S.quizGiuste;S.quizGiuste=0;schermataQuiz();};
+  document.getElementById("av").onclick=()=>{
+    if(ultima){schermataFinale();}
+    else{S.tappa++;schermataMappa();}
+  };
+}
+
+function schermataFinale(){
+  stop();
+  const puntiQuiz=S.giuste*20, puntiTrofei=S.trofei*100, puntiKm=Math.round(S.km/10);
+  const tot=puntiQuiz+puntiTrofei+puntiKm+S.crediti;
+  let grado="Viaggiatore d'Italia";
+  if(S.trofei>=18)grado="LEGGENDA DEL GRANDE GIRO";
+  else if(S.trofei>=14)grado="Campione su due ruote";
+  else if(S.trofei>=10)grado="Pilota provetto";
+  else if(S.trofei>=5)grado="Esploratore coraggioso";
+  app.innerHTML=hud()+`<div class="scr centro">
+    <div style="background:var(--navy);margin:-16px -16px 14px;padding:20px 12px">
+      <h1 style="font-size:22px">Sei arrivato<br>in fondo all'Italia!</h1>
+      <div style="color:#f2c14e;font-size:12px;letter-spacing:2px;margin-top:8px">${grado}</div>
+    </div>
+    <div class="trofeo">🏆</div>
+    <div class="sapevi" style="text-align:left">
+      «Siamo arrivati in fondo» dice Daniel.<br><br>
+      Papà sorride: «E adesso si torna su. Ma da un'altra strada.»<br><br>
+      <b>Buonanotte, Daniel. Buon compleanno!</b>
+    </div>
+    <table class="tab">
+      <tr><td>Risposte giuste (${S.giuste} × 20)</td><td>${puntiQuiz}</td></tr>
+      <tr><td>Trofei (${S.trofei} × 100)</td><td>${puntiTrofei}</td></tr>
+      <tr><td>Chilometri (${S.km} km)</td><td>${puntiKm}</td></tr>
+      <tr><td>Benzina rimasta</td><td>${S.crediti}</td></tr>
+      <tr><td>PUNTEGGIO FINALE</td><td>${tot}</td></tr>
+    </table>
+    <div class="riga-btn"><button class="big" id="di">↺ Rifai il viaggio</button></div>
+  </div>`;
+  document.getElementById("di").onclick=()=>{reset();schermataIntro();};
+}
+
+reset();
+schermataIntro();
+if("speechSynthesis" in window){ speechSynthesis.onvoiceschanged=()=>{}; }
+</script>
+</body>
+</html>
